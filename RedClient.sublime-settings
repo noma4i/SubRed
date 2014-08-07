@@ -1,4 +1,4 @@
 {
-    "redmine_url": "dw",
-    "api_key": "dw"
+    "redmine_url": "REDMINE_URL",
+    "api_key": "YOUR_API_KEY"
 }

@@ -1,24 +1,29 @@
-import sublime, sublime_plugin, os, sys, imp
+import sublime, sublime_plugin, os, sys, imp, re
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "libs"))
 
 
 from redmine import Redmine
 
-class RedClient(object):
-  def __init__(self, edit):
+class SubRedCommand(sublime_plugin.WindowCommand):
+  def run(self):
+    self.window.show_input_panel("Isssue ID #:", "", self.get_issue, None, None)
+
+  def get_issue(self,text):
+    if self.window.active_view():
+      self.window.active_view().run_command( 'redmine_fetcher', {'issue_id': text} )
+
+
+class RedmineFetcherCommand(sublime_plugin.TextCommand):
+  def run(self, edit, issue_id):
     settings = self.settings()
     self.__url  = settings.get('redmine_url')
     self.__api_key  = settings.get('api_key')
-    self.__build()
 
-  def __build(self):
     redmine = Redmine(self.__url, key=self.__api_key)
-    # issue = red_mine.issues
-    issue = redmine.issue.get(22245)
-    print(dir(issue))
-    print(issue.description)
-    self.scratch(issue.description, title="Redmine Issue"+str(issue.id))
+    # 22245
+    issue = redmine.issue.get(issue_id)
+    self.redmine_view(edit, issue, title="Redmine Issue #"+str(issue.id))
 
   def settings(self):
     return sublime.load_settings("RedClient.sublime-settings")
@@ -26,27 +31,19 @@ class RedClient(object):
   def get_window(self):
     return sublime.active_window()
 
-  def scratch(self, output, title=False, position=None, **kwargs):
-    scratch_file = self.get_window().new_file()
-    if title:
-        scratch_file.set_name(title)
-    scratch_file.set_scratch(True)
-    scratch_file.insert(edit, 0, output)
+  def redmine_view(self, edit, issue, title=False, position=None, **kwargs):
+    syntax = 'Packages/Textile/Textile.tmLanguage'
+    redmine_view = self.get_window().new_file()
+    redmine_view.set_name(title)
+    redmine_view.set_scratch(True)
+    redmine_view.set_syntax_file(syntax)
 
-    scratch_file.set_read_only(True)
+    desc = issue.description.replace("\r", "")
 
-    return scratch_file
-  def _output_to_view(self, output_file, output, clear=False, syntax="Packages/Diff/Diff.tmLanguage", **kwargs):
-    output_file.set_syntax_file(syntax)
-    edit = output_file.begin_edit()
-    if clear:
-        region = sublime.Region(0, self.output_view.size())
-        output_file.erase(edit, region)
-    output_file.insert(edit, 0, output)
-    output_file.end_edit(edit)
+    content = ''
+    content += '**%s**' % desc
+    redmine_view.insert(edit, 0, content)
 
-class SubRedCommand(sublime_plugin.TextCommand):
-  def run(self, edit):
-    RedClient(self)
+    redmine_view.set_read_only(True)
 
-    # self.view.replace(edit, sublime.Region(0, self.view.size()), text)
+    return redmine_view
