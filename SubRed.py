@@ -26,7 +26,7 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     self.redmine_view(edit, issue, title="Redmine Issue #"+str(issue.id))
 
   def settings(self):
-    return sublime.load_settings("RedClient.sublime-settings")
+    return sublime.load_settings("SubRed.sublime-settings")
 
   def get_window(self):
     return sublime.active_window()
