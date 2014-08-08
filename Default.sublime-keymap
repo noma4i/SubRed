@@ -1,4 +1,4 @@
 [{
-    "keys": ["alt+k"],
+    "keys": ["shift+command+k"],
     "command": "sub_red"
 }]
