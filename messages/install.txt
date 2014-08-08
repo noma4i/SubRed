@@ -1,0 +1,8 @@
+## SublimeText Redmine Client
+
+- Edit RedClient.sublime-settings to set your Redmine url and API token
+
+{
+    "redmine_url": "https://redmine.com",
+    "api_key": "a69381d9d2a794202f875e4b1ed1dqwd1237cf02712"
+}
