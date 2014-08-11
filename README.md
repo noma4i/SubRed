@@ -3,8 +3,18 @@
 SublimeText Plugin to interact with Redmine right in your editor.
 
 ### Quick Start
-- Clone/download plugin to your SublimeText plugins folder under SubRed
-- Edit RedClient.sublime-settings to set your Redmine url and API token
+- Clone/download plugin to your SublimeText User folder under SubRed
+
+### Configure
+
+Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SublimeCombineMediaQueries > Settings – User`:
+
+```
+{
+  "redmine_url" : "URL to your Redmine",
+  "api_key": "Set your Redmine API Key"
+}
+```
 
 ### Functions
 
@@ -15,13 +25,10 @@ Hit 'shift+command+k"' and enter Issue ID:
 
 New view will open for each issue you search:
 ![Issue served](screenshots/issue.png?raw=true)
-##### 2. Change Issue state.
-...In progress
-
 
 ### Why?
 
-I really hate to open browser, navigate to redmine and look for issue when I need only to take a look on it.
+I really hate to open browser, navigate to Redmine and look for issue when I need only to take a look on it.
 
 ### Found error or want more?
 
