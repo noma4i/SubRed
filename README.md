@@ -8,7 +8,7 @@ SublimeText Plugin to interact with Redmine right in your editor.
 ### Configure
 
 ##### Basic
-Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SublimeCombineMediaQueries > Settings – User`:
+Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SubRed > Settings – User`:
 
 ```
 {
@@ -18,7 +18,7 @@ Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SublimeC
 ```
 
 ##### Hotkeys
-`Preferences: Package Settings > SublimeCombineMediaQueries > Settings – User`:
+`Preferences: Package Settings > SubRed > Key Bindings – User`:
 Hotkeys configuration:
 
 ```
