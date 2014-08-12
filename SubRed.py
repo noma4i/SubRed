@@ -19,9 +19,10 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
   def run(self,edit):
     global project_id
     def on_done(i):
-      query = query_ids[i]
-      project_id = query_projects[i]
-      self.view.run_command( 'redmine_query_list', {'project_id': project_id, 'query_id': query} )
+      if i > -1:
+        query = query_ids[i]
+        project_id = query_projects[i]
+        self.view.run_command( 'redmine_query_list', {'project_id': project_id, 'query_id': query} )
 
     redmine = RedmineFetcherCommand.init_redmine(self)
     queries = redmine.query.all()
@@ -71,12 +72,13 @@ class SubRedSetStatusCommand(sublime_plugin.TextCommand):
       statuses_ids.append(status.id)
 
     def on_done(i):
-      if cached_issue_id != 0:
-        issue = redmine.issue.get(cached_issue_id)
-        issue.status_id = statuses_ids[i]
-        issue.save()
-        sublime.status_message('Issue #%r now is %s' % (issue.id, statuses_names[i]))
-        self.view.run_command( 'redmine_fetcher', {'issue_id': cached_issue_id} )
+      if i > -1:
+        if cached_issue_id != 0:
+          issue = redmine.issue.get(cached_issue_id)
+          issue.status_id = statuses_ids[i]
+          issue.save()
+          sublime.status_message('Issue #%r now is %s' % (issue.id, statuses_names[i]))
+          self.view.run_command( 'redmine_fetcher', {'issue_id': cached_issue_id} )
 
     region = sublime.Region(51,52)
     issue_line = self.view.window().active_view().line(region)
