@@ -19,6 +19,11 @@
                                 "command": "open_file",
                                 "args": {"file": "${packages}/User/SubRed.sublime-settings"},
                                 "caption": "Settings – User"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/User/SubRed.sublime-keymap"},
+                                "caption": "Key Bindings – User"
                             }
                         ]
                     }

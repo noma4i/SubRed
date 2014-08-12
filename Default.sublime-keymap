@@ -1,4 +1,10 @@
-[{
+[
+  {
     "keys": ["shift+command+k"],
     "command": "sub_red"
-}]
+  },
+  {
+    "keys": ["shift+command+h"],
+    "command": "sub_red_set_status"
+  }
+]
