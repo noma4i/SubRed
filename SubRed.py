@@ -6,8 +6,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "libs"))
 from redmine import Redmine
 
 cached_issue_id = 0
-statuses_names = []
-statuses_ids = []
 
 class SubRedCommand(sublime_plugin.WindowCommand):
   def run(self):
@@ -16,6 +14,50 @@ class SubRedCommand(sublime_plugin.WindowCommand):
   def get_issue(self,text):
     if self.window.active_view():
       self.window.active_view().run_command( 'redmine_fetcher', {'issue_id': text} )
+
+class SubRedGetQueryCommand(sublime_plugin.TextCommand):
+  def run(self,edit):
+    global project_id
+    def on_done(i):
+      query = query_ids[i]
+      project_id = query_projects[i]
+      self.view.run_command( 'redmine_query_list', {'project_id': project_id, 'query_id': query} )
+
+    redmine = RedmineFetcherCommand.init_redmine(self)
+    queries = redmine.query.all()
+    query_names = []
+    query_ids = []
+    query_projects = []
+    for query in queries:
+      query_names.append(query.name)
+      query_ids.append(query.id)
+      if hasattr(query, 'project_id'):
+        query_projects.append(query.project_id)
+    self.view.window().show_quick_panel(query_names, on_done)
+
+
+class RedmineQueryListCommand(sublime_plugin.TextCommand):
+  def run(self,edit,project_id,query_id):
+    redmine = RedmineFetcherCommand.init_redmine(self)
+    issues = redmine.issue.filter(project_id=project_id,query_id=query_id)
+    self.redmine_view(edit, issues, title="Redmine Query List")
+
+  def redmine_view(self, edit, issues, title=False, position=None, **kwargs):
+    syntax = 'Packages/Markdown/Markdown.tmLanguage'
+    redmine_view = self.view.window().new_file()
+    redmine_view.set_name(title)
+    redmine_view.set_scratch(True)
+    redmine_view.set_syntax_file(syntax)
+
+    content = 'Total: %s\n' % len(issues)
+    content += '-------------------------------------------\n'
+    for issue in issues:
+      content += '#%r\t\t%s\n' % (issue.id,issue.subject)
+
+    redmine_view.insert(edit, 0, content)
+    redmine_view.set_read_only(True)
+
+    return redmine_view
 
 class SubRedSetStatusCommand(sublime_plugin.TextCommand):
   def run(self,edit):
@@ -95,6 +137,7 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     content += '###### Priority:       %s\n' %issue.priority
     if hasattr(issue, 'assigned_to'):
       content += '###### Assigned to:    %s\n' %issue.assigned_to
+    content += '# %s\n' % issue.subject
     content += '-------------------------------------------\n\n\n'
 
     content += '[%r](%s)' % (issue.created_on.strftime("%A %d. %B %Y"), issue.author.name)
