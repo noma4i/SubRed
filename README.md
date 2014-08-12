@@ -19,6 +19,15 @@ Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SubRed >
 
 ##### Hotkeys
 `Preferences: Package Settings > SubRed > Key Bindings – User`:
+
+Available commands:
+
+`sub_red` - Open Issue
+
+`sub_red_set_status` - Set Issue Status
+
+`sub_red_get_query` - List Queries
+
 Hotkeys configuration:
 
 ```
@@ -28,13 +37,23 @@ Hotkeys configuration:
   },
   {
     "keys": ["shift+command+h"],
-    "command": "sub_red_refresh"
+    "command": "sub_red_set_status"
+  },
+  {
+    "keys": ["shift+command+l"],
+    "command": "sub_red_get_query"
   }
 ```
 
 ### Functions
 
-##### 1. View Redmine Issue right in you SublimeText view pane.
+	- View issue in SublimeText
+	- Change issue state
+	- View Queries list and issues from particular query
+
+### Showtime!
+![Query](screenshots/query.png?raw=true)
+
 Hit `shift+command+k` and enter Issue ID:
 
 ![Search for issue](screenshots/search_id.png?raw=true)
@@ -42,11 +61,11 @@ Hit `shift+command+k` and enter Issue ID:
 New view will open for each issue you search:
 ![Issue served](screenshots/issue.png?raw=true)
 
-`shift+command+h` to change issue status
+`shift+command+l` to change issue status
 
-![Issue served](screenshots/set_status.png?raw=true)
+![Set Status](screenshots/set_status.png?raw=true)
 
 ### Why?
 
-I really hate to open browser, navigate to Redmine and look for issue when I need only to take a look on it.
+I really hate to open browser, navigate to Redmine.
 
