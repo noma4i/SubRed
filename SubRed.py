@@ -22,6 +22,8 @@ class SubRedSetStatusCommand(sublime_plugin.TextCommand):
     global cached_statuses, cached_issue_id
     redmine = RedmineFetcherCommand.init_redmine(self)
     statuses = redmine.issue_status.all()
+    statuses_names = []
+    statuses_ids = []
     for status in statuses:
       statuses_names.append(status.name)
       statuses_ids.append(status.id)
@@ -32,8 +34,7 @@ class SubRedSetStatusCommand(sublime_plugin.TextCommand):
         issue.status_id = statuses_ids[i]
         issue.save()
         sublime.status_message('Issue #%r now is %s' % (issue.id, statuses_names[i]))
-        self.view.window().run_command("close")
-        self.view.run_command( 'redmine_fetcher', {'issue_id': issue.id} )
+        self.view.run_command( 'redmine_fetcher', {'issue_id': cached_issue_id} )
 
     region = sublime.Region(51,52)
     issue_line = self.view.window().active_view().line(region)
@@ -51,12 +52,9 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     global cached_issue_id
 
     redmine = self.init_redmine()
-    try:
-      issue = redmine.issue.get(issue_id)
-      self.redmine_view(edit, issue, title="Redmine Issue #"+str(issue.id))
-      cached_issue_id = issue.id
-    except:
-      sublime.status_message('No such issue')
+    issue = redmine.issue.get(issue_id)
+    self.redmine_view(edit, issue, title="Redmine Issue #"+str(issue.id))
+    cached_issue_id = issue.id
 
   def init_redmine(self):
     settings = sublime.load_settings("SubRed.sublime-settings")
@@ -70,10 +68,15 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
 
   def redmine_view(self, edit, issue, title=False, position=None, **kwargs):
     syntax = 'Packages/Markdown/Markdown.tmLanguage'
-    redmine_view = self.get_window().new_file()
-    redmine_view.set_name(title)
-    redmine_view.set_scratch(True)
-    redmine_view.set_syntax_file(syntax)
+    if self.view.name() == ("Redmine Issue #"+str(issue.id)):
+      redmine_view = self.view
+      redmine_view.set_read_only(False)
+      redmine_view.erase(edit, sublime.Region(0, self.view.size()))
+    else:
+      redmine_view = self.get_window().new_file()
+      redmine_view.set_name(title)
+      redmine_view.set_scratch(True)
+      redmine_view.set_syntax_file(syntax)
 
     desc = issue.description.replace("\r", "")
 
