@@ -52,18 +52,7 @@ Hotkeys configuration:
 	- View Queries list and issues from particular query
 
 ### Showtime!
-![Query](screenshots/query.png?raw=true)
-
-Hit `shift+command+k` and enter Issue ID:
-
-![Search for issue](screenshots/search_id.png?raw=true)
-
-New view will open for each issue you search:
-![Issue served](screenshots/issue.png?raw=true)
-
-`shift+command+l` to change issue status
-
-![Set Status](screenshots/set_status.png?raw=true)
+![Query](screenshots/subred_show.gif?raw=true)
 
 ### Why?
 
