@@ -1,3 +1,4 @@
 [
-   { "caption": "RedMine", "command": "sub_red" }
+   { "caption": "Redmine: View Issue", "command": "sub_red" },
+   { "caption": "Redmine: Set Status", "command": "sub_red_set_status" }
 ]
