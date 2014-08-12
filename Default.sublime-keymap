@@ -6,5 +6,9 @@
   {
     "keys": ["shift+command+h"],
     "command": "sub_red_set_status"
+  },
+  {
+    "keys": ["shift+command+l"],
+    "command": "sub_red_get_query"
   }
 ]
