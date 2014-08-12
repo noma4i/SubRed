@@ -28,15 +28,12 @@ class SubRedSetStatusCommand(sublime_plugin.TextCommand):
 
     def on_done(i):
       if cached_issue_id != 0:
-        # try:
         issue = redmine.issue.get(cached_issue_id)
         issue.status_id = statuses_ids[i]
         issue.save()
         sublime.status_message('Issue #%r now is %s' % (issue.id, statuses_names[i]))
-        self.view.window().run_command("close_file")
+        self.view.window().run_command("close")
         self.view.run_command( 'redmine_fetcher', {'issue_id': issue.id} )
-        # except:
-          # sublime.message_dialog("No such issue")
 
     region = sublime.Region(51,52)
     issue_line = self.view.window().active_view().line(region)
