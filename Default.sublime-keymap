@@ -10,5 +10,9 @@
   {
     "keys": ["shift+command+l"],
     "command": "sub_red_get_query"
+  },
+  {
+    "keys": ["shift+command+j"],
+    "command": "sub_red_go_redmine"
   }
 ]

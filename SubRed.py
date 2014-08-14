@@ -1,4 +1,4 @@
-import sublime, sublime_plugin, os, sys, imp, re
+import sublime, sublime_plugin, os, sys, imp, re, webbrowser, platform
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "libs"))
 
@@ -59,6 +59,24 @@ class RedmineQueryListCommand(sublime_plugin.TextCommand):
     redmine_view.set_read_only(True)
 
     return redmine_view
+
+class SubRedGoRedmineCommand(sublime_plugin.TextCommand):
+  def run(self,edit):
+    current_os = platform.system()
+    settings = sublime.load_settings("SubRed.sublime-settings")
+    issue_id = self.view.name().replace('Redmine Issue #','')
+    if current_os == 'Darwin':
+      wbrowser = webbrowser.get('macosx')
+    elif current_os == 'Windows':
+      wbrowser = webbrowser.get('windows-default')
+    else:
+      wbrowser = webbrowser.get('mozilla')
+
+    if issue_id:
+      url = settings.get('redmine_url')+"/issues/"+issue_id
+      wbrowser.open_new(url)
+    else:
+      sublime.message_dialog("Open Issue!")
 
 class SubRedSetStatusCommand(sublime_plugin.TextCommand):
   def run(self,edit):
