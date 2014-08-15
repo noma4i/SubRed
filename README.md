@@ -28,6 +28,12 @@ Available commands:
 
 `sub_red_get_query` - List Queries
 
+`sub_red_go_redmine` - Open Issue in default browser
+
+`sub_red_refresh_issue` - Refresh Issue view 
+
+`sub_red_set_assigned` - Assign Issue to me
+
 Hotkeys configuration:
 
 ```
@@ -40,8 +46,16 @@ Hotkeys configuration:
     "command": "sub_red_set_status"
   },
   {
+    "keys": ["shift+command+g"],
+    "command": "sub_red_refresh_issue"
+  },
+  {
     "keys": ["shift+command+l"],
     "command": "sub_red_get_query"
+  },
+  {
+    "keys": ["shift+command+j"],
+    "command": "sub_red_go_redmine"
   }
 ```
 
@@ -49,7 +63,12 @@ Hotkeys configuration:
 
 	- View issue in SublimeText
 	- Change issue state
+	- Assign to Me
+	- Open current Issue in Browser
 	- View Queries list and issues from particular query
+	- Refresh Issue view
+
+![Functions](screenshots/features.png?raw=true)
 
 ### Showtime!
 ![Query](screenshots/subred_show.gif?raw=true)
