@@ -8,6 +8,10 @@
     "command": "sub_red_set_status"
   },
   {
+    "keys": ["shift+command+g"],
+    "command": "sub_red_refresh_issue"
+  },
+  {
     "keys": ["shift+command+l"],
     "command": "sub_red_get_query"
   },

@@ -1,6 +1,8 @@
 [
    { "caption": "Redmine: View Issue", "command": "sub_red" },
+   { "caption": "Redmine: Refresh Issue", "command": "sub_red_refresh_issue" },
    { "caption": "Redmine: Open in Browser", "command": "sub_red_go_redmine" },
    { "caption": "Redmine: Set Status", "command": "sub_red_set_status" },
+   { "caption": "Redmine: Assign To Me", "command": "sub_red_set_assigned" },
    { "caption": "Redmine: List Queries", "command": "sub_red_get_query" }
 ]
