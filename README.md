@@ -17,7 +17,7 @@ Set the `redmine_url` and `api_key` in `Preferences: Package Settings > SubRed >
 }
 ```
 
-##### Hotkeys
+### Hotkeys
 `Preferences: Package Settings > SubRed > Key Bindings – User`:
 
 Available commands:
@@ -30,11 +30,12 @@ Available commands:
 
 `sub_red_go_redmine` - Open Issue in default browser
 
-`sub_red_refresh_issue` - Refresh Issue view 
-
 `sub_red_set_assigned` - Assign Issue to me
 
-Hotkeys configuration:
+##### Hotkeys available in Issue View:
+`c - post a comment | r - refresh issue | s - change state | g - open in browser`
+
+##### Hotkeys configuration:
 
 ```
   {
@@ -44,10 +45,6 @@ Hotkeys configuration:
   {
     "keys": ["shift+command+h"],
     "command": "sub_red_set_status"
-  },
-  {
-    "keys": ["shift+command+g"],
-    "command": "sub_red_refresh_issue"
   },
   {
     "keys": ["shift+command+l"],
@@ -63,6 +60,7 @@ Hotkeys configuration:
 
 	- View issue in SublimeText
 	- Change issue state
+	- Post Comment
 	- Assign to Me
 	- Open current Issue in Browser
 	- View Queries list and issues from particular query
