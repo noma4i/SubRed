@@ -28,6 +28,14 @@ class SubRedCommand(sublime_plugin.WindowCommand):
     if self.window.active_view():
       self.window.active_view().run_command( 'redmine_fetcher', {'issue_id': text} )
 
+# Comment Issue
+class SubRedCommentIssueCommand(sublime_plugin.WindowCommand):
+  def run(self):
+    self.window.show_input_panel("Comment #:", "", self.post_comment, None, None)
+
+  def post_comment(self,text):
+    self.window.active_view().run_command( 'redmine_post_comment', {'text': text} )
+
 # Redmine: Refresh Issue
 class SubRedRefreshIssueCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -114,6 +122,19 @@ class SubRedGoRedmineCommand(sublime_plugin.TextCommand):
       sublime.message_dialog("Open Issue!")
 
 ########################## View Actions ##########################
+class RedminePostCommentCommand(sublime_plugin.TextCommand):
+  def run(self,edit,text):
+    print("OLOLO!")
+    issue_id = self.view.name().replace('Redmine Issue #','')
+    redmine = SubRedmine.connect()
+
+    issue = redmine.issue.get(issue_id)
+    issue.notes = text
+    issue.save()
+
+    sublime.status_message('Comment posted!')
+    self.view.run_command( 'redmine_fetcher', {'issue_id': issue.id} )
+
 class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
   def run(self,edit,project_id,query_id):
     redmine = SubRedmine.connect()
@@ -157,9 +178,11 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
       r.set_scratch(True)
       r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
 
+    r.settings().set('sub_red_issue', True)
     desc = issue.description.replace("\r", "").replace("\n","\n#|\t\t")
 
-    content = '-------------------------------------------\n'
+    content = "['c - post a comment | r - refresh issue | s - change state | g - open in browser'](hotkeys)\n"
+    content += '-------------------------------------------\n'
     content += '#Issue %s\n' % issue.id
     content += '###### Status:         %s\n' %issue.status
     content += '###### Priority:       %s\n' %issue.priority
@@ -185,4 +208,4 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
           content += '\n'
 
     r.insert(edit, 0, content)
-    r.set_read_only(False)
+    r.set_read_only(True)

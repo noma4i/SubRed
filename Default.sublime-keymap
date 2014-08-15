@@ -4,19 +4,31 @@
     "command": "sub_red"
   },
   {
-    "keys": ["shift+command+h"],
-    "command": "sub_red_set_status"
-  },
-  {
-    "keys": ["shift+command+g"],
-    "command": "sub_red_refresh_issue"
-  },
-  {
     "keys": ["shift+command+l"],
     "command": "sub_red_get_query"
   },
   {
-    "keys": ["shift+command+j"],
-    "command": "sub_red_go_redmine"
+    "keys": ["c"], "command": "sub_red_comment_issue",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
+  },
+  {
+    "keys": ["r"], "command": "sub_red_refresh_issue",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
+  },
+  {
+    "keys": ["s"], "command": "sub_red_set_status",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
+  },
+  {
+    "keys": ["g"], "command": "sub_red_go_redmine",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
   }
 ]
