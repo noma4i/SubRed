@@ -1,3 +1,5 @@
+#This is a fork project from https://github.com/noma4i/SubRed project
+
 ## SublimeText Redmine Client
 
 SublimeText Plugin to interact with Redmine right in your editor.
