@@ -186,6 +186,12 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     content += '#Issue %s\n' % issue.id
     content += '###### Status:         %s\n' %issue.status
     content += '###### Priority:       %s\n' %issue.priority
+    if hasattr(issue, 'done_ratio'):
+      content += '###### %% Done:         %s\n' %issue.done_ratio
+    if hasattr(issue, 'estimated_hours'):
+      content += '###### Estimated Time: %s\n' %issue.estimated_hours
+    if hasattr(issue, 'spent_hours'):
+      content += '###### Spent Time:     %s\n' %issue.spent_hours
     if hasattr(issue, 'assigned_to'):
       content += '###### Assigned to:    %s\n' %issue.assigned_to
     content += '# %s\n' % issue.subject
