@@ -201,6 +201,8 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     content += '# Issue %s\n' % issue.id
     content += '###### Status:         %s\n' %issue.status
     content += '###### Priority:       %s\n' %issue.priority
+    if hasattr(issue, 'tracker'):
+      content += '###### Tracker:        %s\n' %issue.tracker
     if hasattr(issue, 'fixed_version'):
       content += '###### Target Version: %s\n' %issue.fixed_version
     if hasattr(issue, 'done_ratio'):
