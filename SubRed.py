@@ -128,7 +128,8 @@ class SubRedGoRedmineCommand(sublime_plugin.TextCommand):
     elif current_os == 'Windows':
       wbrowser = webbrowser.get('windows-default')
     else:
-      wbrowser = webbrowser.get('mozilla')
+      # user empty get() to get default web browser.
+      wbrowser = webbrowser.get()
     if issue_id:
       url = settings.get('redmine_url')+"/issues/"+issue_id
       wbrowser.open_new(url)
