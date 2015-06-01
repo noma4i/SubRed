@@ -28,6 +28,20 @@ class SubRedCommand(sublime_plugin.WindowCommand):
     if self.window.active_view():
       self.window.active_view().run_command( 'redmine_fetcher', {'issue_id': text} )
 
+# View current Issue
+class SubRedCurrentCommand(sublime_plugin.TextCommand):
+  def run(self, edit):
+    for region in self.view.sel():
+      if region.empty():
+        # Get the selected text
+        issueNum = self.view.line(region)
+        issueNum = self.view.substr(issueNum)
+        issueNum = issueNum.split(' ')[0]
+        if len(issueNum) > 0 :
+          sublime.status_message('Openning issue ' + issueNum)
+          issueNum = issueNum.replace('#', '')
+          self.view.run_command( 'redmine_fetcher', {'issue_id': issueNum} )
+
 # Comment Issue
 class SubRedCommentIssueCommand(sublime_plugin.WindowCommand):
   def run(self):
@@ -124,7 +138,6 @@ class SubRedGoRedmineCommand(sublime_plugin.TextCommand):
 ########################## View Actions ##########################
 class RedminePostCommentCommand(sublime_plugin.TextCommand):
   def run(self,edit,text):
-    print("OLOLO!")
     issue_id = self.view.name().replace('Redmine Issue #','')
     redmine = SubRedmine.connect()
 
@@ -146,8 +159,10 @@ class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
     r.set_name(title)
     r.set_scratch(True)
     r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
+    r.settings().set('sub_list_issues', True)
 
-    content = 'Total: %s\n' % len(issues)
+    content = "['space or enter - view line issue'](hotkeys)\n\n"
+    content += 'Total: %s\n' % len(issues)
     content += '-------------------------------------------\n'
     for issue in issues:
       content += '#%r\t\t%s\n' % (issue.id,issue.subject)
@@ -183,9 +198,11 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
 
     content = "['c - post a comment | r - refresh issue | s - change state | g - open in browser'](hotkeys)\n"
     content += '-------------------------------------------\n'
-    content += '#Issue %s\n' % issue.id
+    content += '# Issue %s\n' % issue.id
     content += '###### Status:         %s\n' %issue.status
     content += '###### Priority:       %s\n' %issue.priority
+    if hasattr(issue, 'fixed_version'):
+      content += '###### Target Version: %s\n' %issue.fixed_version
     if hasattr(issue, 'done_ratio'):
       content += '###### %% Done:         %s\n' %issue.done_ratio
     if hasattr(issue, 'estimated_hours'):
@@ -194,8 +211,8 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
       content += '###### Spent Time:     %s\n' %issue.spent_hours
     if hasattr(issue, 'assigned_to'):
       content += '###### Assigned to:    %s\n' %issue.assigned_to
-    content += '# %s\n' % issue.subject
-    content += '-------------------------------------------\n\n\n'
+    content += '\n# %s\n' % issue.subject
+    content += '-------------------------------------------\n\n'
 
     if len(issue.attachments) > 0:
       content += '---'
@@ -205,7 +222,8 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
       content += '\n---\n\n'
 
     content += '[%r](%s)' % (issue.created_on.strftime("%A %d. %B %Y"), issue.author.name)
-    content += '\n#|\t\t%s\n\n\n' % desc
+    content += '\n#|\t\t%s\n\n' % desc
+    content += '\n## History\n'
     for journal in issue.journals:
       if hasattr(journal, 'notes'):
         if journal.notes != '':
