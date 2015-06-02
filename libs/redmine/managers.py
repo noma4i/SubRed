@@ -10,7 +10,8 @@ from redmine.exceptions import (
     ResourceNoFieldsProvidedError,
     ResourceVersionMismatchError,
     ResourceNotFoundError,
-    ValidationError
+    ValidationError,
+    ResourceRequirementsError
 )
 
 
@@ -34,10 +35,10 @@ class ResourceManager(object):
                 continue
 
         if resource_class is None:
-            raise ResourceError()
+            raise ResourceError
 
         if redmine.ver is not None and LooseVersion(str(redmine.ver)) < LooseVersion(resource_class.redmine_version):
-            raise ResourceVersionMismatchError()
+            raise ResourceVersionMismatchError
 
         self.redmine = redmine
         self.resource_class = resource_class
@@ -55,7 +56,16 @@ class ResourceManager(object):
             limit = 100
 
         while True:
-            response = self.redmine.request('get', self.url, params=dict(self.params, limit=limit, offset=offset))
+            try:
+                response = self.redmine.request('get', self.url, params=dict(self.params, limit=limit, offset=offset))
+            except ResourceNotFoundError:
+                # This is the only place we're checking for ResourceRequirementsError
+                # because for some POST/PUT/DELETE requests Redmine may also return 404
+                # status code instead of 405 which can lead us to improper decisions
+                if self.resource_class.requirements:
+                    raise ResourceRequirementsError(self.resource_class.requirements)
+
+                raise ResourceNotFoundError
 
             # A single resource was requested via get()
             if isinstance(response[self.container], dict):
@@ -64,7 +74,7 @@ class ResourceManager(object):
                 break
 
             # Resource supports limit/offset on Redmine level
-            if all(param in response for param in ('total_count', 'limit', 'offset')):
+            if all(response.get(param) is not None for param in ('total_count', 'limit', 'offset')):
                 total_count = response['total_count']
                 results.extend(response[self.container])
 
@@ -79,13 +89,13 @@ class ResourceManager(object):
                     limit -= 100
                     offset += 100
 
-                    if limit < 0:
+                    if limit <= 0:
                         break
             # We have to mimic limit/offset if a resource
             # doesn't support this feature on Redmine level
             else:
                 total_count = len(response[self.container])
-                results = response[self.container][offset:limit + offset]
+                results = response[self.container][offset:None if self.params.get('limit', 0) == 0 else limit + offset]
                 break
 
         return results, total_count
@@ -105,7 +115,7 @@ class ResourceManager(object):
     def get(self, resource_id, **params):
         """Returns a Resource object directly by resource id (can be either integer id or string identifier)"""
         if self.resource_class.query_one is None or self.resource_class.container_one is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         try:
             self.url = '{0}{1}'.format(self.redmine.url, self.resource_class.query_one.format(resource_id, **params))
@@ -119,7 +129,7 @@ class ResourceManager(object):
     def all(self, **params):
         """Returns a ResourceSet object with all Resource objects"""
         if self.resource_class.query_all is None or self.resource_class.container_all is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         self.url = '{0}{1}'.format(self.redmine.url, self.resource_class.query_all)
         self.params = self.prepare_params(params)
@@ -129,16 +139,16 @@ class ResourceManager(object):
     def filter(self, **filters):
         """Returns a ResourceSet object with Resource objects filtered by a dict of filters"""
         if self.resource_class.query_filter is None or self.resource_class.container_filter is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         if not filters:
-            raise ResourceNoFiltersProvidedError()
+            raise ResourceNoFiltersProvidedError
 
         try:
             self.url = '{0}{1}'.format(self.redmine.url, self.resource_class.query_filter.format(**filters))
             self.container = self.resource_class.container_filter.format(**filters)
         except KeyError:
-            raise ResourceFilterError()
+            raise ResourceFilterError
 
         self.params = self.prepare_params(filters)
         return ResourceSet(self)
@@ -146,7 +156,7 @@ class ResourceManager(object):
     def create(self, **fields):
         """Creates a new resource in Redmine database and returns resource object on success"""
         if self.resource_class.query_create is None or self.resource_class.container_create is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         if not fields:
             raise ResourceNoFieldsProvidedError
@@ -186,7 +196,7 @@ class ResourceManager(object):
     def update(self, resource_id, **fields):
         """Updates a Resource object by resource id (can be either integer id or string identifier)"""
         if self.resource_class.query_update is None or self.resource_class.container_update is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         if not fields:
             raise ResourceNoFieldsProvidedError
@@ -214,7 +224,7 @@ class ResourceManager(object):
     def delete(self, resource_id, **params):
         """Deletes a Resource object by resource id (can be either integer id or string identifier)"""
         if self.resource_class.query_delete is None:
-            raise ResourceBadMethodError()
+            raise ResourceBadMethodError
 
         try:
             url = '{0}{1}'.format(self.redmine.url, self.resource_class.query_delete.format(resource_id, **params))

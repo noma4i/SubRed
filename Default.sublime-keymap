@@ -42,5 +42,11 @@
     "context": [
       {"key": "setting.sub_list_issues", "operand": true}
     ]
+  },
+  {
+    "keys": ["enter"], "command": "sub_red_process_hotkey",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
   }
 ]

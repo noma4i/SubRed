@@ -17,7 +17,7 @@ class NoFileError(BaseRedmineError):
 
 
 class ResourceNotFoundError(BaseRedmineError):
-    """Resource not found"""
+    """Requested resource doesn't exist"""
     def __init__(self):
         super(ResourceNotFoundError, self).__init__("Requested resource doesn't exist")
 
@@ -61,7 +61,7 @@ class UnknownError(BaseRedmineError):
 
 
 class ValidationError(BaseRedmineError):
-    """Redmine validation error"""
+    """Redmine validation errors occured on create/update resource"""
     def __init__(self, error):
         super(ValidationError, self).__init__(error)
 
@@ -99,7 +99,9 @@ class ResourceNoFiltersProvidedError(BaseRedmineError):
 class ResourceNoFieldsProvidedError(BaseRedmineError):
     """No field(s) provided"""
     def __init__(self):
-        super(ResourceNoFieldsProvidedError, self).__init__('Resource needs some fields to be set to be created/updated')
+        super(ResourceNoFieldsProvidedError, self).__init__(
+            'Resource needs some fields to be set to be created/updated'
+        )
 
 
 class ResourceAttrError(BaseRedmineError, AttributeError):
@@ -138,3 +140,31 @@ class CustomFieldValueError(BaseRedmineError):
         super(CustomFieldValueError, self).__init__(
             "Custom fields should be passed as a list of dictionaries in the form of [{'id': 1, 'value': 'foo'}]"
         )
+
+
+class ResourceRequirementsError(BaseRedmineError):
+    """Resource requires specified Redmine plugin(s) to function"""
+    def __init__(self, requirements):
+        super(ResourceRequirementsError, self).__init__(
+            'The following requirements must be installed for resource to function: {0}'.format(
+                ', '.join(req if isinstance(req, str) else ' >= '.join(req) for req in requirements)
+            )
+        )
+
+
+class FileUrlError(BaseRedmineError):
+    """URL provided to download a file can't be parsed"""
+    def __init__(self):
+        super(FileUrlError, self).__init__("URL provided to download a file can't be parsed")
+
+
+class ForbiddenError(BaseRedmineError):
+    """Requested resource is forbidden"""
+    def __init__(self):
+        super(ForbiddenError, self).__init__("Requested resource is forbidden")
+
+
+class JSONDecodeError(BaseRedmineError):
+    """Unable to decode received JSON"""
+    def __init__(self):
+        super(JSONDecodeError, self).__init__('Unable to decode received JSON, please check your server configuration')
