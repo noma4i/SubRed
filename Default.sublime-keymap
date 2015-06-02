@@ -32,12 +32,6 @@
     ]
   },
   {
-    "keys": ["space"], "command": "sub_red_current",
-    "context": [
-      {"key": "setting.sub_list_issues", "operand": true}
-    ]
-  },
-  {
     "keys": ["enter"], "command": "sub_red_current",
     "context": [
       {"key": "setting.sub_list_issues", "operand": true}

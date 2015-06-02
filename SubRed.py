@@ -194,7 +194,7 @@ class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
     r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
     r.settings().set('sub_list_issues', True)
 
-    content = "['space or enter - view line issue'](hotkeys)\n\n"
+    content = "['enter - view line issue'](hotkeys)\n\n"
     content += 'Total: %s\n' % len(issues)
     content += '-------------------------------------------\n'
     for issue in issues:
@@ -261,7 +261,6 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     content += '\n#|\t\t%s\n\n' % desc
     content += '\n## History\n'
     for journal in issue.journals:
-      print (journal.details)
       if hasattr(journal, 'notes'):
         if journal.notes != '':
           content += '[%r](%s)\n' % (journal.created_on.strftime('%A %d. %B %Y'), journal.user)
