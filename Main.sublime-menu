@@ -20,7 +20,7 @@
                                 "args": {
                                     "file": "${packages}/SubRed/SubRed.sublime-settings"
                                 },
-                                "caption": "Settings – Default"
+                                "caption": "Settings – User"
                             },
                             {
                                 "command": "open_file",

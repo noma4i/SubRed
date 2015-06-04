@@ -11,6 +11,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "libs"))
 
 from redmine import Redmine
 
+projectsList = {}
+
 class SubRedmine:
   def connect():
     settings = sublime.load_settings("SubRed.sublime-settings")
@@ -50,14 +52,14 @@ class SubRedProcessHotkeyCommand(sublime_plugin.TextCommand):
         # Get the selected text
         identifier = self.view.line(region)
         identifier = self.view.substr(identifier)
-        identifier = identifier.replace('### ', '').replace('#', '')
+        identifier = identifier.replace('#', '').strip()
         identifier = identifier.split(' ')
         if len(identifier) > 1:
           operation = identifier[0]
           object_id = identifier[1]
           if operation == 'Revision':
-            project_id = identifier[2].lstrip('[').rstrip(']').split('|')[1]
-            url = '/projects/{0}/repository/revisions/{1}/diff/'.format(project_id, object_id)
+            project_id = identifier[2].replace('[ProjectId:','').rstrip(']')
+            url = '/projects/{0}/repository/revisions/{1}/diff/'.format(project_id, object_id.lstrip('r'))
           self.view.run_command( 'sub_red_go_to_url', {'url': url, 'external': False} )
 
 
@@ -77,7 +79,7 @@ class SubRedRefreshIssueCommand(sublime_plugin.TextCommand):
 
 # Redmine: List Queries
 class SubRedGetQueryCommand(sublime_plugin.TextCommand):
-  def run(self,edit):
+  def run(self,edit, project_id=None):
     def on_done(i):
       if i > -1:
         query = query_ids[i]
@@ -90,12 +92,45 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
     query_ids = []
     query_projects = []
     for query in queries:
+      if project_id is not None and project_id != query.project_id:
+        continue;
       query_names.append(query.name)
       query_ids.append(query.id)
       if hasattr(query, 'project_id'):
         query_projects.append(query.project_id)
 
     self.view.window().show_quick_panel(query_names, on_done)
+
+# Redmine: List Projects
+class SubRedGetProjectsCommand(sublime_plugin.TextCommand):
+  def run(self,edit):
+    redmine = SubRedmine.connect()
+    projects = redmine.project.all()
+
+    self.redmine_view(edit, projects, title="Redmine Projects List")
+
+  def redmine_view(self, edit, projects, title):
+    if self.view.name() == title:
+      r = self.view
+      r.set_read_only(False)
+      r.erase(edit, sublime.Region(0, self.view.size()))
+    else:
+      r = self.view.window().new_file()
+      r.set_name(title)
+      r.set_scratch(True)
+      r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
+      r.settings().set('sub_list_projects', True)
+
+    content = ">> ['enter - list queries | i - view information'](hotkeys for selected line)\n\n"
+    content += '## ID         Project name                           Creation date        \n'
+    content += '## ---------------------------------------------------------------------\n'
+    for project in projects:
+      projectsList[project.id] = project.name
+      content += '## [%s] %s %s\n' % (str(project.id).ljust(8,' '), project.name.ljust(38,' '), str(project.created_on.strftime('%A %d. %B %Y')).ljust(21, ' '))
+
+    content += '\n### Total projects: %s\n' % len(projects)
+    r.insert(edit, 0, content)
+    r.set_read_only(True)
 
 # Redmine: Set Status
 class SubRedSetStatusCommand(sublime_plugin.TextCommand):
@@ -198,7 +233,31 @@ class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
     r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
     r.settings().set('sub_list_issues', True)
 
-    content = "['enter - view line issue'](hotkeys)\n\n"
+    content = ">> ['enter - view line issue'](hotkeys)\n\n"
+    content += '#Issue ID      Subject\n'
+    content += '-------------------------------------------\n'
+    for issue in issues:
+      content += '#%s   %s\n' % (str(issue.id).ljust(11, ' '), issue.subject)
+    content += '-------------------------------------------\n'
+    content += 'Total: %s\n' % len(issues)
+
+    r.insert(edit, 0, content)
+    r.set_read_only(True)
+
+class RedmineFetchProjectsCommand(sublime_plugin.TextCommand):
+  def run(self,edit,project_id,query_id):
+    redmine = SubRedmine.connect()
+    issues = redmine.issue.filter(project_id=project_id,query_id=query_id)
+    self.redmine_view(edit, issues, title="Redmine Query List")
+
+  def redmine_view(self, edit, issues, title):
+    r = self.view.window().new_file()
+    r.set_name(title)
+    r.set_scratch(True)
+    r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
+    r.settings().set('sub_list_issues', True)
+
+    content = ">> ['enter - view line issue'](hotkeys)\n\n"
     content += 'Total: %s\n' % len(issues)
     content += '-------------------------------------------\n'
     for issue in issues:
@@ -206,6 +265,19 @@ class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
 
     r.insert(edit, 0, content)
     r.set_read_only(True)
+
+class RedmineGetQueryForProjectCommand(sublime_plugin.TextCommand):
+  def run(self, edit):
+    for region in self.view.sel():
+      if region.empty():
+        # Get the selected text
+        project_line = self.view.line(region)
+        project_line = self.view.substr(project_line)
+        project_id = int(project_line[4:12])
+        if project_id > 0 :
+          sublime.status_message('Openning query list for project ' + project_line[14:53])
+          self.view.run_command( 'sub_red_get_query', {'project_id': project_id} )
+
 
 class RedmineFetcherCommand(sublime_plugin.TextCommand):
   def run(self, edit, issue_id):
@@ -231,51 +303,57 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
       r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
 
     r.settings().set('sub_red_issue', True)
-    desc = issue.description.replace("\r", "").replace("\n","\n#|\t\t")
 
-    content = "['c - post a comment | r - refresh issue | s - change state | g - open in browser | enter - open selected revision'](hotkeys)\n"
+    if not hasattr(issue, 'fixed_version'):
+      issue.fixed_version = ''
+    if not hasattr(issue, 'tracker'):
+      issue.tracker = 'Issue'
+    if not hasattr(issue, 'done_ratio'):
+      issue.done_ratio = 0
+    if not hasattr(issue, 'estimated_hours'):
+      issue.estimated_hours = ''
+    if not hasattr(issue, 'spent_hours'):
+      issue.spent_hours = ''
+    if not hasattr(issue, 'assigned_to'):
+      issue.assigned_to = ''
+
+    content = ">> ['c - post a comment | r - refresh issue | s - change state | g - open in browser'](hotkeys for screen)\n"
     content += '-------------------------------------------\n'
-    content += '# Issue %s\n' % issue.id
-    content += '#### Project:        %s\n' %issue.project
-    content += '#### Status:         %s\n' %issue.status
-    content += '#### Priority:       %s\n' %issue.priority
-    if hasattr(issue, 'tracker'):
-      content += '#### Tracker:        %s\n' %issue.tracker
-    if hasattr(issue, 'fixed_version'):
-      content += '#### Target Version: %s\n' %issue.fixed_version
-    if hasattr(issue, 'done_ratio'):
-      content += '#### %% Done:         %s\n' %issue.done_ratio
-    if hasattr(issue, 'estimated_hours'):
-      content += '#### Estimated Time: %s\n' %issue.estimated_hours
-    if hasattr(issue, 'spent_hours'):
-      content += '#### Spent Time:     %s\n' %issue.spent_hours
-    if hasattr(issue, 'assigned_to'):
-      content += '#### Assigned to:    %s\n' %issue.assigned_to
-    content += '\n# %s\n' % issue.subject
-    content += '-------------------------------------------\n\n'
-
-    if len(issue.attachments) > 0:
-      content += '---'
-    for f in issue.attachments:
-      content += '\n#\t%r (%s)' % (f.filename,f.content_url)
-    if len(issue.attachments) > 0:
-      content += '\n---\n\n'
-
+    content += '# %s #%s  - %s\n' % (issue.tracker, issue.id, issue.subject)
+    content += '## Project:          %s    Priority:       %s\n' % (str(issue.project).ljust(20, ' ')[0:20], str(issue.priority).ljust(10, ' ')[0:10])
+    content += '## Status:           %s    %% Done:         %s\n' % (str(issue.status).ljust(20, ' ')[0:20], str(issue.done_ratio).ljust(10, ' ')[0:10])
+    content += '## Assignee:         %s    Target Version: %s\n' % (str(issue.assigned_to).ljust(20, ' ')[0:20], str(issue.fixed_version).ljust(10, ' ')[0:10])
+    content += '## Estimated Time:   %s    Spent Time:     %s\n' % (str(issue.estimated_hours).ljust(20, ' ')[0:20], str(issue.spent_hours).ljust(10, ' ')[0:10])
+    content += '\n## Description\n'
     content += '[%r](%s)' % (issue.created_on.strftime("%A %d. %B %Y"), issue.author.name)
-    content += '\n#|\t\t%s\n\n' % desc
-    content += '\n## History\n'
-    for journal in issue.journals:
-      if hasattr(journal, 'notes'):
-        if journal.notes != '':
-          content += '[%r](%s)\n' % (journal.created_on.strftime('%A %d. %B %Y'), journal.user)
-          content += '\t%s\n' % journal.notes.replace('\r', '')
-          content += '\n'
+    content += '\n## |\t\t%s\n\n' % issue.description.replace("\r", "").replace("\n","\n## |\t\t")
 
-    content += '\n## Associated Revisions\n'
-    for changeset in issue.changesets:
-      content += '### Revision #%s [%s|%s] \n[%r](%s)\n' % (changeset['revision'], issue.project, issue.project.id, changeset['committed_on'], changeset['user']['name'])
-      content += '%s\n' % changeset['comments'].replace('\r', '')
-      content += '\n'
+
+    if len (issue.journals) > 0 :
+        content += '-------------------------------------------\n'
+        content += '## History\n'
+        for journal in issue.journals:
+          if hasattr(journal, 'notes'):
+            if journal.notes != '':
+              content += '[%r](%s)\n' % (journal.created_on.strftime('%A %d. %B %Y'), journal.user)
+              content += '\t%s\n' % journal.notes.replace('\r', '')
+              content += '\n'
+
+    if len (issue.changesets) > 0 :
+      content += '-------------------------------------------\n'
+      content += '## Associated Revisions\n'
+      content += ">> ['enter - open selected revision'](hotkeys for revisions)\n\n"
+      for changeset in issue.changesets:
+        content += '### Revision r%s [ProjectId:%s] \n[%r](%s)\n' % (changeset['revision'], issue.project.id, changeset['committed_on'], changeset['user']['name'])
+        content += '%s\n' % changeset['comments'].replace('\r', '')
+        content += '\n'
+
+    if len(issue.attachments) > 0:
+      content += '-------------------------------------------\n'
+      content += '\n## Attachments\n'
+      content += '---'
+      for f in issue.attachments:
+        content += '\n#\t%r (%s)' % (f.filename,f.content_url)
 
     r.insert(edit, 0, content)
     r.set_read_only(True)

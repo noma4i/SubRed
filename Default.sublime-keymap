@@ -38,6 +38,12 @@
     ]
   },
   {
+    "keys": ["enter"], "command": "redmine_get_query_for_project",
+    "context": [
+      {"key": "setting.sub_list_projects", "operand": true}
+    ]
+  },
+  {
     "keys": ["enter"], "command": "sub_red_process_hotkey",
     "context": [
       {"key": "setting.sub_red_issue", "operand": true}
