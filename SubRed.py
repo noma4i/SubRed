@@ -56,7 +56,8 @@ class SubRedProcessHotkeyCommand(sublime_plugin.TextCommand):
           operation = identifier[0]
           object_id = identifier[1]
           if operation == 'Revision':
-            url = 'projects/' + identifier[2].replace('[', '').replace(']', '').lower() + '/repository/revisions/' + object_id + '/diff/'
+            project_id = identifier[2].lstrip('[').rstrip(']').split('|')[1]
+            url = '/projects/{0}/repository/revisions/{1}/diff/'.format(project_id, object_id)
           self.view.run_command( 'sub_red_go_to_url', {'url': url, 'external': False} )
 
 
@@ -165,8 +166,11 @@ class SubRedGoToUrlCommand(sublime_plugin.TextCommand):
     else:
       wbrowser = webbrowser.get()
     if not external:
-      url = settings.get('redmine_url') + url
+      url = '{0}{1}'.format(settings.get('redmine_url').rstrip('/'), url)
     wbrowser.open_new(url)
+
+
+
 
 ########################## View Actions ##########################
 class RedminePostCommentCommand(sublime_plugin.TextCommand):
@@ -269,7 +273,7 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
 
     content += '\n## Associated Revisions\n'
     for changeset in issue.changesets:
-      content += '### Revision #%s [%s] \n[%r](%s)\n' % (changeset['revision'], issue.project, changeset['committed_on'], changeset['user']['name'])
+      content += '### Revision #%s [%s|%s] \n[%r](%s)\n' % (changeset['revision'], issue.project, issue.project.id, changeset['committed_on'], changeset['user']['name'])
       content += '%s\n' % changeset['comments'].replace('\r', '')
       content += '\n'
 
