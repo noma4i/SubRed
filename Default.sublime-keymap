@@ -32,6 +32,12 @@
     ]
   },
   {
+    "keys": ["t"], "command": "sub_red_list_time_entries",
+    "context": [
+      {"key": "setting.sub_red_issue", "operand": true}
+    ]
+  },
+  {
     "keys": ["enter"], "command": "sub_red_current",
     "context": [
       {"key": "setting.sub_list_issues", "operand": true}
@@ -47,6 +53,12 @@
     "keys": ["enter"], "command": "sub_red_process_hotkey",
     "context": [
       {"key": "setting.sub_red_issue", "operand": true}
+    ]
+  },
+  {
+    "keys": ["g"], "command": "sub_red_go_redmine_time_entries",
+    "context": [
+      {"key": "setting.sub_red_list_time", "operand": true}
     ]
   }
 ]

@@ -16,7 +16,7 @@ projectsList = {}
 class SubRedmine:
   def connect():
     settings = sublime.load_settings("SubRed.sublime-settings")
-    url  = settings.get('redmine_url')
+    url  = settings.get('redmine_url').rstrip('/')
     api_key  = settings.get('api_key')
 
     return Redmine(url, key=api_key)
@@ -99,6 +99,8 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
       if hasattr(query, 'project_id'):
         query_projects.append(query.project_id)
 
+    query_names.reverse()
+    query_ids.reverse()
     self.view.window().show_quick_panel(query_names, on_done)
 
 # Redmine: List Projects
@@ -123,11 +125,12 @@ class SubRedGetProjectsCommand(sublime_plugin.TextCommand):
 
     content = ">> ['enter - list queries | i - view information'](hotkeys for selected line)\n\n"
     content += '## ID         Project name                           Creation date        \n'
-    content += '## ---------------------------------------------------------------------\n'
+    content += '--------------------------------------------------------------------------\n'
     for project in projects:
       projectsList[project.id] = project.name
       content += '## [%s] %s %s\n' % (str(project.id).ljust(8,' '), project.name.ljust(38,' '), str(project.created_on.strftime('%A %d. %B %Y')).ljust(21, ' '))
 
+    content += '--------------------------------------------------------------------------\n'
     content += '\n### Total projects: %s\n' % len(projects)
     r.insert(edit, 0, content)
     r.set_read_only(True)
@@ -185,10 +188,29 @@ class SubRedGoRedmineCommand(sublime_plugin.TextCommand):
       # user empty get() to get default web browser.
       wbrowser = webbrowser.get()
     if issue_id:
-      url = settings.get('redmine_url')+"/issues/"+issue_id
+      url = settings.get('redmine_url').rstrip('/')+"/issues/"+issue_id
       wbrowser.open_new(url)
     else:
       sublime.message_dialog("Open Issue!")
+
+# #Redmine: Open time entries in browser
+class SubRedGoRedmineTimeEntriesCommand(sublime_plugin.TextCommand):
+  def run(self,edit):
+    current_os = platform.system()
+    settings = sublime.load_settings("SubRed.sublime-settings")
+    issue_id = self.view.name().replace('Time Entries #','')
+    if current_os == 'Darwin':
+      wbrowser = webbrowser.get('macosx')
+    elif current_os == 'Windows':
+      wbrowser = webbrowser.get('windows-default')
+    else:
+      # user empty get() to get default web browser.
+      wbrowser = webbrowser.get()
+    if issue_id:
+      url = '{0}/issues/{1}/time_entries'.format(settings.get('redmine_url').rstrip('/'), issue_id)
+      wbrowser.open_new(url)
+    else:
+      sublime.message_dialog("Time entries table openned!")
 
 class SubRedGoToUrlCommand(sublime_plugin.TextCommand):
   def run(self,edit,url,external):
@@ -203,8 +225,6 @@ class SubRedGoToUrlCommand(sublime_plugin.TextCommand):
     if not external:
       url = '{0}{1}'.format(settings.get('redmine_url').rstrip('/'), url)
     wbrowser.open_new(url)
-
-
 
 
 ########################## View Actions ##########################
@@ -258,10 +278,11 @@ class RedmineFetchProjectsCommand(sublime_plugin.TextCommand):
     r.settings().set('sub_list_issues', True)
 
     content = ">> ['enter - view line issue'](hotkeys)\n\n"
-    content += 'Total: %s\n' % len(issues)
     content += '-------------------------------------------\n'
     for issue in issues:
       content += '#%r\t\t%s\n' % (issue.id,issue.subject)
+    content += '-------------------------------------------\n'
+    content += 'Total: %s\n' % len(issues)
 
     r.insert(edit, 0, content)
     r.set_read_only(True)
@@ -317,7 +338,7 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
     if not hasattr(issue, 'assigned_to'):
       issue.assigned_to = ''
 
-    content = ">> ['c - post a comment | r - refresh issue | s - change state | g - open in browser'](hotkeys for screen)\n"
+    content = ">> ['c - post a comment | r - refresh issue | s - change state | g - open in browser | t - list time entries'](hotkeys for screen)\n"
     content += '-------------------------------------------\n'
     content += '# %s #%s  - %s\n' % (issue.tracker, issue.id, issue.subject)
     content += '## Project:          %s    Priority:       %s\n' % (str(issue.project).ljust(20, ' ')[0:20], str(issue.priority).ljust(10, ' ')[0:10])
@@ -354,6 +375,49 @@ class RedmineFetcherCommand(sublime_plugin.TextCommand):
       content += '---'
       for f in issue.attachments:
         content += '\n#\t%r (%s)' % (f.filename,f.content_url)
+
+    r.insert(edit, 0, content)
+    r.set_read_only(True)
+
+# View current Issue time entries
+class SubRedListTimeEntriesCommand(sublime_plugin.TextCommand):
+  def run(self, edit):
+    redmine = SubRedmine.connect()
+    issue_id = self.view.name().replace('Redmine Issue #','')
+
+    time_entries = redmine.time_entry.filter(issue_id=issue_id)
+    if len(time_entries) > 0:
+      self.redmine_view(edit, time_entries, issue_id, title="Time Entries #"+str(issue_id))
+
+  def redmine_view(self, edit, time_entries, issue_id, title):
+    if self.view.name() == title:
+      r = self.view
+      r.set_read_only(False)
+      r.erase(edit, sublime.Region(0, self.view.size()))
+    else:
+      r = sublime.active_window().new_file()
+      r.set_name(title)
+      r.set_scratch(True)
+      r.set_syntax_file('Packages/Markdown/Markdown.tmLanguage')
+
+    r.settings().set('sub_red_list_time', True)
+
+
+    content = ">> ['g - open in browser'](hotkeys for screen)\n"
+    content += '-------------------------------------------\n\n'
+    content += '# Time entries for issue #%s\n\n' % issue_id
+    content += '## Hours    Date       User                 Activity        Comment                    \n'
+    content += '---------------------------------------------------------------------------------------\n'
+    for time_entry in time_entries:
+      content += '## %s %s %s %s %s\n' % (
+        str(time_entry.hours).ljust(8, ' '),
+        str(time_entry.spent_on).ljust(10, ' '),
+        str(time_entry.user).ljust(20, ' ')[0:20],
+        str(time_entry.activity.name).ljust(15, ' ')[0:15],
+        time_entry.comments
+      )
+    content += '---------------------------------------------------------------------------------------\n'
+    content += 'Total projects: %s\n' % len(time_entries)
 
     r.insert(edit, 0, content)
     r.set_read_only(True)
