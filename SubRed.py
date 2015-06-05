@@ -91,10 +91,11 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
     query_names = []
     query_ids = []
     query_projects = []
+    self.view.run_command( 'sub_red_get_projects', {'show': False} )
     for query in queries:
       if project_id is not None and project_id != query.project_id:
         continue;
-      query_names.append(query.name)
+      query_names.append([query.name, "Project: " + projectsList[query.project_id]])
       query_ids.append(query.id)
       if hasattr(query, 'project_id'):
         query_projects.append(query.project_id)
@@ -105,11 +106,15 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
 
 # Redmine: List Projects
 class SubRedGetProjectsCommand(sublime_plugin.TextCommand):
-  def run(self,edit):
+  def run(self,edit,show=True):
     redmine = SubRedmine.connect()
     projects = redmine.project.all()
 
-    self.redmine_view(edit, projects, title="Redmine Projects List")
+    if show:
+      self.redmine_view(edit, projects, title="Redmine Projects List")
+    else:
+      for project in projects:
+        projectsList[project.id] = project.name
 
   def redmine_view(self, edit, projects, title):
     if self.view.name() == title:
