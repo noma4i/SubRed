@@ -286,10 +286,11 @@ class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
     r.settings().set('list_issues_context', True)
 
     content = ">> ['enter - view line issue'](hotkeys)\n\n"
-    content += '#Issue ID      Subject\n'
-    content += '-------------------------------------------\n'
+    content += '#Issue ID    Status    Assignee              Subject\n'
+    content += '------------------------------------------------------------------------\n'
     for issue in issues:
-      content += '#%s   %s\n' % (str(issue.id).ljust(11, ' '), issue.subject)
+      print (issue.__dict__)
+      content += '#%s   %s  %s\n' % (str(issue.id).ljust(11, ' '), str(issue.status).ljust(11, ' '), issue.subject)
     content += '-------------------------------------------\n'
     content += 'Total: %s\n' % len(issues)
 
