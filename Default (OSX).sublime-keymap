@@ -1,0 +1,14 @@
+[
+  {
+    "keys": ["ctrl+alt+k"],
+    "command": "sub_red_open_issue"
+  },
+  {
+    "keys": ["ctrl+alt+l"],
+    "command": "sub_red_get_query_list"
+  },
+  {
+    "keys": ["ctrl+alt+p"],
+    "command": "sub_red_get_projects_list"
+  }
+]

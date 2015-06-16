@@ -1,34 +1,74 @@
 [
   {
     "keys": ["shift+command+k"],
-    "command": "sub_red"
+    "command": "sub_red_open_issue"
   },
   {
     "keys": ["shift+command+l"],
-    "command": "sub_red_get_query"
+    "command": "sub_red_get_query_list"
+  },
+  {
+    "keys": ["shift+command+p"],
+    "command": "sub_red_get_projects_list"
   },
   {
     "keys": ["c"], "command": "sub_red_comment_issue",
     "context": [
-      {"key": "setting.sub_red_issue", "operand": true}
+      {"key": "setting.view_issue_context", "operand": true}
     ]
   },
   {
     "keys": ["r"], "command": "sub_red_refresh_issue",
     "context": [
-      {"key": "setting.sub_red_issue", "operand": true}
+      {"key": "setting.view_issue_context", "operand": true}
     ]
   },
   {
     "keys": ["s"], "command": "sub_red_set_status",
     "context": [
-      {"key": "setting.sub_red_issue", "operand": true}
+      {"key": "setting.view_issue_context", "operand": true}
     ]
   },
   {
     "keys": ["g"], "command": "sub_red_go_redmine",
     "context": [
-      {"key": "setting.sub_red_issue", "operand": true}
+      {"key": "setting.view_issue_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["t"], "command": "sub_red_list_time_entries",
+    "context": [
+      {"key": "setting.view_issue_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["enter"], "command": "sub_red_open_selected_issue",
+    "context": [
+      {"key": "setting.list_issues_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["enter"], "command": "sub_red_get_query_for_project",
+    "context": [
+      {"key": "setting.list_projects_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["i"], "command": "sub_red_project_information",
+    "context": [
+      {"key": "setting.list_projects_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["enter"], "command": "sub_red_hotkey_issue",
+    "context": [
+      {"key": "setting.view_issue_context", "operand": true}
+    ]
+  },
+  {
+    "keys": ["g"], "command": "sub_red_go_redmine_time_entries",
+    "context": [
+      {"key": "setting.list_time_context", "operand": true}
     ]
   }
 ]
