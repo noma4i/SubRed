@@ -6,6 +6,7 @@ import imp
 import re
 import webbrowser
 import platform
+from pprint import pprint
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "libs"))
 
@@ -61,6 +62,9 @@ class SubRedGetQueryCommand(sublime_plugin.TextCommand):
       query_ids.append(query.id)
       if hasattr(query, 'project_id'):
         query_projects.append(query.project_id)
+      else:
+        query_projects.append(0)
+    
 
     self.view.window().show_quick_panel(query_names, on_done)
 
@@ -138,7 +142,10 @@ class RedminePostCommentCommand(sublime_plugin.TextCommand):
 class RedmineFetchQueryCommand(sublime_plugin.TextCommand):
   def run(self,edit,project_id,query_id):
     redmine = SubRedmine.connect()
-    issues = redmine.issue.filter(project_id=project_id,query_id=query_id)
+    if(project_id != 0):
+      issues = redmine.issue.filter(project_id=project_id,query_id=query_id)
+    else:
+      issues = redmine.issue.filter(query_id=query_id)
     self.redmine_view(edit, issues, title="Redmine Query List")
 
   def redmine_view(self, edit, issues, title):
