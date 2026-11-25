@@ -1,6 +1,12 @@
 import json
 import requests
-from distutils.version import LooseVersion
+import re as _re
+
+
+def LooseVersion(vstring):
+    """Stand-in for distutils.version.LooseVersion (distutils was removed in Python 3.12).
+    Compares the numeric parts, which is all the version checks here need."""
+    return tuple(int(x) for x in _re.findall(r'\d+', vstring))
 from redmine.version import __version__
 from redmine.managers import ResourceManager
 from redmine.utilities import to_string, json_response
